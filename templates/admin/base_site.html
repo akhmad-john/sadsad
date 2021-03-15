@@ -1,0 +1,15 @@
+{% extends "admin/base_site.html" %}
+ 
+{% load static %}
+{% load i18n %}
+
+
+ 
+{% block branding %}
+<h1 id="site-name" class="float-left"><img height="38" width="38" src="{% static 'img/smi_white.svg' %}"/></h1>
+{% endblock %}
+
+{% block extrahead %}
+    <link rel="shortcut icon" href="{% static 'img/smi_white.svg' %}" />
+    <!-- <link rel="stylesheet" type="text/css" href="{% static 'css/custom_admin.css' %}"/> -->
+{% endblock %}

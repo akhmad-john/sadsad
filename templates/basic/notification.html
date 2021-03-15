@@ -1,0 +1,86 @@
+<a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+  <i class="fas fa-bell fa-fw"></i>
+  <!-- Counter - Alerts -->
+  <span class="badge badge-danger badge-counter" id="newNotificationCount">
+    0
+  </span>
+</a>
+<!-- Dropdown - Alerts -->
+<div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="alertsDropdown">
+  <h6 class="dropdown-header">
+    Alerts Center
+  </h6>
+  <span id="newNotifications">
+  </span>
+  <span id="cheat">
+  </span>
+  {% for old_notification in old_notifications %}
+  <a class="dropdown-item text-center small text-gray-500" href="#">
+    <b>{{old_notification.get_group_display}}</b><br/>
+    {{old_notification.body}}
+  </a>
+  {% endfor %}
+</div>
+
+{% load static %}
+<script src="{% static 'notificationObj.js' %}"></script>
+
+<script>
+
+  $('#alertsDropdown').click(function(){
+    const tmpObjsHTML = $('#newNotifications').html()
+    $.ajax({
+      method:'post',
+      url:'{% url "AJAXMarkNotificationAsReaded" %}',
+      data:{
+        csrfmiddlewaretoken:'{{csrf_token}}'
+      },
+      success:function(data){
+        $('#newNotifications').html('')
+        $('#cheat').html(tmpObjsHTML)
+        $('#newNotificationCount').text(data.unreaded_notification_count)
+      },
+      error:function(data){
+        console.log('ERR',data)
+      }
+    })
+  })
+  var ws = new WebSocket(
+            'wss://' + window.location.host + '/ws/notification/?token=da0157f8243ca0f2bd75473cb546de367e0eaeae'
+            )
+
+  ws.onopen = function(event){
+    console.log('opened', event);
+  }
+
+  ws.onmessage = function(event){
+    console.log('message', event);
+    var data = JSON.parse(event.data);
+    console.log(data)
+    
+    var old_notifications = JSON.parse(data.old_notifications);
+    var unreaded_notifications = JSON.parse(data.unreaded_notifications);
+    var unreaded_notification_count = data.unreaded_notification_count;
+
+    $('#newNotifications').html('')
+    unreaded_notifications.forEach(element => {
+      var obj = new NotificationObj(element.fields)
+      $('#newNotifications').append(obj.drawNotification())
+    });
+
+    $('#newNotificationCount').text(unreaded_notification_count)
+    console.log('loaded')
+  }
+
+  ws.onclose = function(event){
+    console.log('close', event);
+  }
+
+  ws.onerror = function(event){
+    console.log('error', event);
+  }
+
+  // window.setInterval(function(){
+  //   loadNotifications();
+  // }, 1000);
+</script>
